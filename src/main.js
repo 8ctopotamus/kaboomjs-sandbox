@@ -45,8 +45,12 @@ loadSprite('player', 'Tilemap/characters_packed.png', {
   }
 })
 
+const HEIGHT = height()
 const JUMP_FORCE = 420
 const MOVE_SPEED = 140
+const CAM_ROT_SPEED = 0.002
+let rot = 0
+let jumpCount = 0
 
 scene('main', () => {
   add([
@@ -55,22 +59,16 @@ scene('main', () => {
     origin('center'),
   ])
 
-  const map = addLevel([
-    '                          ',
-    '                          ',
-    '                 x        ',
-    '                          ',
-    '  bbbbbbbbbbbb            ', 
-    '                          ',
-    '              bbbbb       ',
-    '                          ',
-    '   =====           bbbbb  ',
-    '                          ',
-    '                          ',
-    '         ===              ',
-    '                          ',
-    'bbbbbbbbb====   === bbbb===',
-    '                          ',
+
+
+  addLevel([
+    ...`
+
+    bbbbbbbbbbbb              x           x x       
+    
+          bbbbbbbbbbbb                         bbbbb
+  ===================  ==   ===============bbbbb============   =================bbbb================
+  `.trim().split('\n'),
   ], {
     width: 19,
     height: 19,
@@ -106,7 +104,6 @@ scene('main', () => {
   
   const movePlayer = dir => { 
     player.dir = dir
-    console.log(player)
     if (player.grounded() && player.curAnim() !== 'run')
     player.play('run')
     if (dir === 'left') {
@@ -118,35 +115,49 @@ scene('main', () => {
     }
   }
   
-  let rot = 0
-  const CAM_ROT_SPEED = 0.002
-  const jump = () => player.jump(JUMP_FORCE) 
-  const playerIdle = () => player.play('idle')
-  const playerAction = () => {
-    player.angle -= rot
-    camRot(rot)
-    camPos(player.pos)
-    if (!player.grounded()) {
-      player.dir === 'right'
-        ? rot += CAM_ROT_SPEED
-        : rot -= CAM_ROT_SPEED
-    } else {
-      rot = 0
+  const jump = () => {
+    player.play('jump')
+    if (player.grounded() || jumpCount < 2) {
+      player.jump(JUMP_FORCE) 
+      jumpCount++
     }
   }
+  
+  const playerIdle = () => {
+    player.play('idle')
+    rot = 0
+    jumpCount = 0
+  }
 
-  keyPress('space', jump)
-  keyRelease('left', () => playerIdle())
-  keyRelease('right', () => playerIdle())
+  const playerAction = () => {
+    if (player.pos.y < HEIGHT - 120 ) {
+      camPos(player.pos) 
+    } 
+  }
+
   keyDown('left', () => movePlayer('left'))
   keyDown('right', () => movePlayer('right'))
+  keyDown('a', () => movePlayer('left'))
+  keyDown('d', () => movePlayer('right'))
+  keyPress('w', jump)
+  keyPress('space', jump)
+
+  keyRelease('a', () => playerIdle())
+  keyRelease('d', () => playerIdle())
+  keyRelease('left', () => playerIdle())
+  keyRelease('right', () => playerIdle())
+
   player.action(playerAction)
+  player.on('grounded', playerIdle)
 
   const handleBoxTouched = (p, b) => b.use(body())
 
   const handlePlayerEnemyCollide = (p, e) => {
     camShake(12)
+    restart()
   }
+
+  const restart = () => player.pos = vec2(200, 0)
 
   collides('player', 'box', handleBoxTouched)
   collides('player', 'enemy', handlePlayerEnemyCollide)
