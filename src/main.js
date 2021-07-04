@@ -5,10 +5,29 @@ kaboom({
 })
 
 loadRoot('../assets/kenney_pixelplatformer/')
-loadSprite('bg', 'Background/Background_0005.png')
+loadSprite('bg', 'Background/Background_purple.png')
+loadSprite('ground', 'Tiles/tile_0000.png')
+loadSprite('enemy', 'Tilemap/characters_packed.png', {
+  sliceX: 9,
+  sliceY: 3.1,
+  anims: {
+    run: {
+      from: 0,
+      to: 1.9
+    },
+    jump: {
+      from: 1,
+      to: 1.99
+    },
+    idle: { 
+      from: 0,
+      to: 0,
+    }
+  }
+})
 loadSprite('player', 'Tilemap/characters_packed.png', {
   sliceX: 9,
-  sliceY: 3,
+  sliceY: 3.1,
   anims: {
     run: {
       from: 0,
@@ -34,6 +53,37 @@ scene('main', () => {
     scale(width() / 2, height() / 2),
     origin('topleft'),
   ])
+
+  const map = addLevel([
+    '                          ',
+    '                          ',
+    '              x           ',
+    '                          ',
+    '                          ',
+    '                          ',
+    '                          ',
+    '                          ',
+    '   =====                  ',
+    '                          ',
+    '                          ',
+    '         ===              ',
+    '                          ',
+    '===============   ===     ',
+    '                          ',
+  ], {
+    width: 19,
+    height: 19,
+    pos: vec2(0, 0),
+    '=': [
+      sprite('ground'),
+      solid(),
+    ],
+    'x': [
+      sprite('enemy'),
+      color(rgba(1, 1, 0, 1)),
+      body(),
+    ]
+  })
 
   const player = add([
     sprite('player', { animSpeed: 0.2 }),
@@ -61,6 +111,9 @@ scene('main', () => {
   }
 
   const playerIdle = () => player.play('idle')
+  const playerAction = () => {
+
+  }
 
   keyPress('space', jump)
   keyRelease('left', () => playerIdle())
@@ -68,11 +121,15 @@ scene('main', () => {
   keyDown('left', () => movePlayer('left'))
   keyDown('right', () => movePlayer('right'))
 
+  player.action(playerAction)
+
+  // level
   add([
     rect(width(), 12),
     pos(0, 280),
     origin('topleft'),
     solid(),
+    color(rgba(0, 1, 1, 0.5))
   ])
 })
 
