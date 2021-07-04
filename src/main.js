@@ -5,6 +5,8 @@ kaboom({
 })
 
 loadRoot('../assets/kenney_pixelplatformer/')
+loadSound('lowFreqExplosion', '../sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg')
+loadSound('laser', '../sci-fi-sounds/Audio/laserSmall_000.ogg')
 loadSprite('bg', 'Background/Background_purple.png')
 loadSprite('ground', 'Tiles/tile_0000.png')
 loadSprite('box', 'Tiles/tile_0026.png')
@@ -65,8 +67,7 @@ scene('main', () => {
   
   camIgnore(['bg'])
 
-  const map = addLevel([
-    ...`
+  addLevel([...`
     o       o      o wda o o    o               o            
 
 
@@ -151,7 +152,7 @@ scene('main', () => {
     } 
   }
 
-  const addLaser = () => {    
+  const addLaser = () => {
     const right = player.pos.x <= mousePos().x
     const offsetX = right ? 20 : -20
     const l = add([
@@ -159,15 +160,23 @@ scene('main', () => {
       origin('center'),
       pos((player.pos.x + offsetX), player.pos.y),
       color(0, 1, 1),
-      'laser'
+      'laser',
+      { lifetime: 0 }
     ])
     const dirX = right
       ? MOVE_SPEED
       : -MOVE_SPEED
-    l.action(() => l.move(vec2(dirX, 0)))
+    l.action(() => {
+      l.lifetime++
+      l.move(vec2(dirX, 0))
+      if (l.lifetime > 70) {
+        destroy(l)
+      }
+    })
   }
 
   const shoot = () => {
+    play('laser')
     addLaser()
   }
 
@@ -200,6 +209,7 @@ scene('main', () => {
   collides('player', 'box', handleBoxTouched)
   collides('player', 'enemy', handlePlayerEnemyCollide)
   collides('laser', 'killable', (l, k) => {
+    play('lowFreqExplosion')
     destroy(l)
     destroy(k)
   })
