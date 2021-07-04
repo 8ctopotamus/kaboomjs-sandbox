@@ -26,6 +26,7 @@ loadSprite('enemy', 'Tilemap/characters_packed.png', {
     }
   }
 })
+loadSprite('bomb', 'Characters/character_0008.png',)
 loadSprite('player', 'Tilemap/characters_packed.png', {
   sliceX: 9,
   sliceY: 3.1,
@@ -52,22 +53,28 @@ const CAM_ROT_SPEED = 0.002
 let rot = 0
 let jumpCount = 0
 
+layers(['bg', 'main'], 'main')
+
 scene('main', () => {
   add([
     sprite('bg'),
+    layer('bg'),
     scale(width() / 5, height() / 5),
     origin('center'),
   ])
+  
+  camIgnore(['bg'])
 
-
-
-  addLevel([
+  const map = addLevel([
     ...`
+    o       o      o wda o o    o               o            
 
-    bbbbbbbbbbbb              x           x x       
+
+    bbbbbbbb              x           x x       
     
-          bbbbbbbbbbbb                         bbbbb
-  ===================  ==   ===============bbbbb============   =================bbbb================
+    w
+          bbbbbbbbbbbb                            bbbb
+  ===================  ==   ===============bbbbb==
   `.trim().split('\n'),
   ], {
     width: 19,
@@ -87,9 +94,17 @@ scene('main', () => {
       color(rgba(1, 1, 0, 1)),
       body(),
       'enemy',
+      'killable'
+    ],
+    'o': [
+      sprite('bomb'),
+      body(),
+      'bomb',
+      'enemy',
+      'killable',
     ]
   })
-
+  
   const player = add([
     sprite('player', { animSpeed: 0.2 }),
     origin('center'),
@@ -97,6 +112,7 @@ scene('main', () => {
     scale(-1, 1),
     body(),
     'player',
+    'killable',
     {
       dir: 'right',
     }
@@ -135,20 +151,25 @@ scene('main', () => {
     } 
   }
 
-  keyDown('left', () => movePlayer('left'))
-  keyDown('right', () => movePlayer('right'))
-  keyDown('a', () => movePlayer('left'))
-  keyDown('d', () => movePlayer('right'))
-  keyPress('w', jump)
-  keyPress('space', jump)
+  const addLaser = () => {    
+    const right = player.pos.x <= mousePos().x
+    const offsetX = right ? 20 : -20
+    const l = add([
+      rect(5, 2),
+      origin('center'),
+      pos((player.pos.x + offsetX), player.pos.y),
+      color(0, 1, 1),
+      'laser'
+    ])
+    const dirX = right
+      ? MOVE_SPEED
+      : -MOVE_SPEED
+    l.action(() => l.move(vec2(dirX, 0)))
+  }
 
-  keyRelease('a', () => playerIdle())
-  keyRelease('d', () => playerIdle())
-  keyRelease('left', () => playerIdle())
-  keyRelease('right', () => playerIdle())
-
-  player.action(playerAction)
-  player.on('grounded', playerIdle)
+  const shoot = () => {
+    addLaser()
+  }
 
   const handleBoxTouched = (p, b) => b.use(body())
 
@@ -157,10 +178,31 @@ scene('main', () => {
     restart()
   }
 
-  const restart = () => player.pos = vec2(200, 0)
+  const restart = () => go('main')
 
+  player.action(playerAction)
+  player.on('grounded', playerIdle)
+
+  // input
+  keyDown('left', () => movePlayer('left'))
+  keyDown('right', () => movePlayer('right'))
+  keyDown('a', () => movePlayer('left'))
+  keyDown('d', () => movePlayer('right'))
+  keyPress('w', jump)
+  keyRelease('a', () => playerIdle())
+  keyRelease('d', () => playerIdle())
+  keyRelease('left', () => playerIdle())
+  keyRelease('right', () => playerIdle())
+  keyPress('space', jump)
+  mouseClick(shoot)
+
+  // collisions
   collides('player', 'box', handleBoxTouched)
   collides('player', 'enemy', handlePlayerEnemyCollide)
+  collides('laser', 'killable', (l, k) => {
+    destroy(l)
+    destroy(k)
+  })
 })
 
 start('main')
