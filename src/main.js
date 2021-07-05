@@ -72,9 +72,14 @@ scene('main', () => {
   camIgnore(['bg'])
 
   addLevel([...`
+  u
+
+
+
+
   u                  u
   
-  o       o    o o    o     u               
+  o       o        o     u               
                                 
 
     bbbbbbbb       x       
@@ -117,7 +122,7 @@ scene('main', () => {
     ], 
     'u': [
       sprite('ufo'),
-      scale(0.25),
+      scale(0.19),
       'ufo',
       'enemy',
       'killable'
@@ -235,6 +240,7 @@ scene('main', () => {
   collides("walker", "box", (w, b) => {
     w.dir === 'left' ? w.dir = 'right' : w.dir = 'left'
   });
+  
   // listeners
   on('update', 'walker', w => {
     const goingLeft = w.dir === 'left'
@@ -250,7 +256,7 @@ scene('main', () => {
     const b = add([
       rect(5, 5),
       pos(u.pos.x, u.pos.y),
-      color(1, 1, 0)
+      color(.6, .6, 0)
     ])
     u.action(() => b.move(vec2(player.pos.x - u.pos.x, player.pos.y - u.pos.y)))
     wait(.25, () => b.use('laser'))
@@ -258,6 +264,7 @@ scene('main', () => {
     return b
   }
 
+  
   
   loop(6, () => {
     every('ufo', u => {
