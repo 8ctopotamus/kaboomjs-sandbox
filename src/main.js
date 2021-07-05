@@ -6,7 +6,7 @@ kaboom({
 
 const baseURL = `${window.location.origin}${window.location.pathname}`
 
-loadRoot(`${baseURL}/assets/kenney_pixelplatformer/`)
+loadRoot(`${baseURL}assets/kenney_pixelplatformer/`)
 loadSound('lowFreqExplosion', '../sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg')
 loadSound('laser', '../sci-fi-sounds/Audio/laserSmall_000.ogg')
 loadSprite('bg', 'Background/Background_purple.png')
