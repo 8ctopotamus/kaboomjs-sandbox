@@ -1,7 +1,7 @@
 kaboom({
   global: true,
   fullscreen: true,
-  scale: 3,
+  scale: 2,
 })
 
 const baseURL = `${window.location.origin}${window.location.pathname}`
@@ -54,6 +54,7 @@ const HEIGHT = height()
 const JUMP_FORCE = 420
 const MOVE_SPEED = 140
 const CAM_ROT_SPEED = 0.002
+
 let rot = 0
 let jumpCount = 0
 
@@ -70,12 +71,12 @@ scene('main', () => {
   camIgnore(['bg'])
 
   addLevel([...`
-    o       o      o wda o o    o               o            
+    o       o      o      o o    o               o            
 
 
     bbbbbbbb              x           x x       
     
-    w
+     
           bbbbbbbbbbbb                            bbbb
   ===================  ==   ===============bbbbb==
   `.trim().split('\n'),
@@ -143,9 +144,9 @@ scene('main', () => {
   }
   
   const playerIdle = () => {
-    player.play('idle')
     rot = 0
     jumpCount = 0
+    player.play('idle')
   }
 
   const playerAction = () => {
@@ -155,19 +156,26 @@ scene('main', () => {
   }
 
   const addLaser = () => {
-    const right = player.pos.x <= mousePos().x
-    const offsetX = right ? 20 : -20
+    const diffX = (mousePos().x - player.pos.x)
+    const diffY = (mousePos().y - player.pos.y)
+
+    console.log(diffX)
+
+    const above = player.pos.y <= mousePos().y
+    const right = player.pos.x <= mousePos().x 
+    const offsetX = diffX > 50 ? (right ? 20 : -20) : 0
+    const offsetY = above ? 20 : -20
+    const tangent = diffY / diffX
     const l = add([
       rect(5, 2),
       origin('center'),
-      pos((player.pos.x + offsetX), player.pos.y),
+      rotate(-tangent),
+      pos((player.pos.x + offsetX), (player.pos.y + offsetY)),
       color(0, 1, 1),
       'laser',
     ])
-    const dirX = right
-      ? MOVE_SPEED
-      : -MOVE_SPEED
-    l.action(() => l.move(vec2(dirX, 0)))
+    const trajectory = vec2(diffX * 2, diffY * 2)
+    l.action(() => l.move(trajectory))
     wait(2, () => destroy(l))
   }
 
