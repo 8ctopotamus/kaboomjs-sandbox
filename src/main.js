@@ -9,7 +9,7 @@ const baseURL = `${window.location.origin}${window.location.pathname}`
 loadRoot(`${baseURL}assets/`)
 loadSound('lowFreqExplosion', 'sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg')
 loadSound('laser', 'sci-fi-sounds/Audio/laserSmall_000.ogg')
-loadSprite('bg', '/kenney_pixelplatformer/Background/Background_purple.png')
+loadSprite('bg', '/kenney_pixelplatformer/Background/background_purple.png')
 loadSprite('ground', '/kenney_pixelplatformer/Tiles/tile_0000.png')
 loadSprite('box', '/kenney_pixelplatformer/Tiles/tile_0026.png')
 loadSprite('bomb', '/kenney_pixelplatformer/Characters/character_0008.png')
