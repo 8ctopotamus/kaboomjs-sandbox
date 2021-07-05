@@ -14,7 +14,7 @@ loadSprite('ground', '/kenney_pixelplatformer/Tiles/tile_0000.png')
 loadSprite('box', '/kenney_pixelplatformer/Tiles/tile_0026.png')
 loadSprite('ufo', '/alien-ufo-pack/PNG/shipYellow_manned.png')
 loadSprite('bomb', '/kenney_pixelplatformer/Characters/character_0008.png')
-loadSprite('enemy', '/kenney_pixelplatformer/Tilemap/characters_packed.png', {
+loadSprite('walker', '/kenney_pixelplatformer/Tilemap/characters_packed.png', {
   sliceX: 9,
   sliceY: 3.1,
   anims: {
@@ -74,24 +74,25 @@ scene('main', () => {
   addLevel([...`
   u                  u
   
-  o       o      o      o o    o     u          o            
+  o       o    o o    o     u               
+                                
 
-
-
-
-    bbbbbbbb              x           x x       
+    bbbbbbbb       x       
     
      
-          bbbbbbbbbbbb                            bbbb
-  ===================  ==   ===============bbbbb==
-  `.trim().split('\n').map(s => s.trim()),
+          bb             bbbb
+  ===========  == ====bbbbb==
+  `.trim()
+   .split('\n')
+   .map(s => s.trim())
   ], {
-    width: 19,
+    width: 18,
     height: 19,
     pos: vec2(0, 0),
     '=': [
       sprite('ground'),
       solid(),
+      'ground',
     ],
     'b': [
       sprite('box'),
@@ -99,11 +100,13 @@ scene('main', () => {
       'box'
     ],
     'x': [
-      sprite('enemy'),
+      sprite('walker'),
       color(rgba(1, 1, 0, 1)),
       body(),
+      'walker',
       'enemy',
-      'killable'
+      'killable',
+      { dir: 'left' }
     ],
     'o': [
       sprite('bomb'),
@@ -114,12 +117,13 @@ scene('main', () => {
     ], 
     'u': [
       sprite('ufo'),
-      scale(0.35),
+      scale(0.25),
+      'ufo',
       'enemy',
       'killable'
     ]
   })
-  
+
   const player = add([
     sprite('player', { animSpeed: 0.2 }),
     origin('center'),
@@ -163,8 +167,7 @@ scene('main', () => {
   const playerAction = () => {
     camPos(player.pos) 
     // player has fallen
-    if (player.pos.y < HEIGHT - 200 ) {
-    }
+    if (player.pos.y < HEIGHT - 200 ) {}
   }
 
   const addLaser = () => {
@@ -208,7 +211,7 @@ scene('main', () => {
   player.action(playerAction)
   player.on('grounded', playerIdle)
 
-  // inputwa
+  // input
   keyDown('left', () => movePlayer('left'))
   keyDown('right', () => movePlayer('right'))
   keyDown('a', () => movePlayer('left'))
@@ -229,6 +232,40 @@ scene('main', () => {
     destroy(l)
     destroy(k)
   })
+  collides("walker", "box", (w, b) => {
+    w.dir === 'left' ? w.dir = 'right' : w.dir = 'left'
+  });
+  // listeners
+  on('update', 'walker', w => {
+    const goingLeft = w.dir === 'left'
+    const x = goingLeft ? -MOVE_SPEED : MOVE_SPEED
+    if (time() > 1 && !w.grounded()) {
+      goingLeft ? w.dir = 'right' : w.dir = 'left'
+    }
+    w.move(x / 3, 0)
+  })
+
+
+  const ufoShoot = u => {
+    const b = add([
+      rect(5, 5),
+      pos(u.pos.x, u.pos.y),
+      color(1, 1, 0)
+    ])
+    u.action(() => b.move(vec2(player.pos.x - u.pos.x, player.pos.y - u.pos.y)))
+    wait(.25, () => b.use('laser'))
+    wait(2, () => destroy(b))
+    return b
+  }
+
+  
+  loop(6, () => {
+    every('ufo', u => {
+      const laser = ufoShoot(u)
+      
+    })
+  })
 })
+
 
 start('main')
