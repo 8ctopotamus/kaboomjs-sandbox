@@ -4,7 +4,9 @@ kaboom({
   scale: 3,
 })
 
-loadRoot('../assets/kenney_pixelplatformer/')
+const baseURL = `${window.location.origin}${window.location.pathname}`
+
+loadRoot(`${baseURL}/assets/kenney_pixelplatformer/`)
 loadSound('lowFreqExplosion', '../sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg')
 loadSound('laser', '../sci-fi-sounds/Audio/laserSmall_000.ogg')
 loadSprite('bg', 'Background/Background_purple.png')
@@ -161,18 +163,12 @@ scene('main', () => {
       pos((player.pos.x + offsetX), player.pos.y),
       color(0, 1, 1),
       'laser',
-      { lifetime: 0 }
     ])
     const dirX = right
       ? MOVE_SPEED
       : -MOVE_SPEED
-    l.action(() => {
-      l.lifetime++
-      l.move(vec2(dirX, 0))
-      if (l.lifetime > 70) {
-        destroy(l)
-      }
-    })
+    l.action(() => l.move(vec2(dirX, 0)))
+    wait(2, () => destroy(l))
   }
 
   const shoot = () => {
@@ -183,6 +179,7 @@ scene('main', () => {
   const handleBoxTouched = (p, b) => b.use(body())
 
   const handlePlayerEnemyCollide = (p, e) => {
+    play('lowFreqExplosion')
     camShake(12)
     restart()
   }

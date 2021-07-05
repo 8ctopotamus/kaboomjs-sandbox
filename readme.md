@@ -1,5 +1,6 @@
 ## Assets by Kenney.nl
 * https://kenney.nl/assets/pixel-platformer
+* https://kenney.nl/assets/alien-ufo-pack
 * https://kenney.nl/assets/sci-fi-sounds
 
 ## Running on Localhost
