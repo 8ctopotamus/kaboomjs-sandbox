@@ -12,6 +12,7 @@ loadSound('laser', 'sci-fi-sounds/Audio/laserSmall_000.ogg')
 loadSprite('bg', '/kenney_pixelplatformer/Background/background_purple.png')
 loadSprite('ground', '/kenney_pixelplatformer/Tiles/tile_0000.png')
 loadSprite('box', '/kenney_pixelplatformer/Tiles/tile_0026.png')
+loadSprite('ufo', '/alien-ufo-pack/PNG/shipYellow_manned.png')
 loadSprite('bomb', '/kenney_pixelplatformer/Characters/character_0008.png')
 loadSprite('enemy', '/kenney_pixelplatformer/Tilemap/characters_packed.png', {
   sliceX: 9,
@@ -71,7 +72,11 @@ scene('main', () => {
   camIgnore(['bg'])
 
   addLevel([...`
-    o       o      o      o o    o               o            
+  u                  u
+  
+  o       o      o      o o    o     u          o            
+
+
 
 
     bbbbbbbb              x           x x       
@@ -79,7 +84,7 @@ scene('main', () => {
      
           bbbbbbbbbbbb                            bbbb
   ===================  ==   ===============bbbbb==
-  `.trim().split('\n'),
+  `.trim().split('\n').map(s => s.trim()),
   ], {
     width: 19,
     height: 19,
@@ -106,6 +111,12 @@ scene('main', () => {
       'bomb',
       'enemy',
       'killable',
+    ], 
+    'u': [
+      sprite('ufo'),
+      scale(0.35),
+      'enemy',
+      'killable'
     ]
   })
   
@@ -150,8 +161,9 @@ scene('main', () => {
   }
 
   const playerAction = () => {
-    if (player.pos.y < HEIGHT - 120 ) {
-      camPos(player.pos) 
+    camPos(player.pos) 
+    // player has fallen
+    if (player.pos.y < HEIGHT - 200 ) {
     }
   }
 
@@ -160,6 +172,7 @@ scene('main', () => {
     const diffY = (mousePos().y - player.pos.y)
     const above = player.pos.y <= mousePos().y
     const right = player.pos.x <= mousePos().x 
+    const moveX = right ? MOVE_SPEED : -MOVE_SPEED
     const shootingStraight = Math.abs(diffY) < 10
     const offsetX = right ? 20 : -20
     const offsetY = !shootingStraight ? above ? 20 : -20 : 0
@@ -172,7 +185,7 @@ scene('main', () => {
       color(0, 1, 1),
       'laser',
     ])
-    const trajectory = vec2(diffX * 2, diffY * 2)
+    const trajectory = vec2(moveX * 2, diffY * 2)
     l.action(() => l.move(trajectory))
     wait(1, () => destroy(l))
   }
@@ -195,7 +208,7 @@ scene('main', () => {
   player.action(playerAction)
   player.on('grounded', playerIdle)
 
-  // input
+  // inputwa
   keyDown('left', () => movePlayer('left'))
   keyDown('right', () => movePlayer('right'))
   keyDown('a', () => movePlayer('left'))
