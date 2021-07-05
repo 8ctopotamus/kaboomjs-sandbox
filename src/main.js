@@ -6,13 +6,14 @@ kaboom({
 
 const baseURL = `${window.location.origin}${window.location.pathname}`
 
-loadRoot(`${baseURL}assets/kenney_pixelplatformer/`)
-loadSound('lowFreqExplosion', '../sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg')
-loadSound('laser', '../sci-fi-sounds/Audio/laserSmall_000.ogg')
-loadSprite('bg', 'Background/Background_purple.png')
-loadSprite('ground', 'Tiles/tile_0000.png')
-loadSprite('box', 'Tiles/tile_0026.png')
-loadSprite('enemy', 'Tilemap/characters_packed.png', {
+loadRoot(`${baseURL}assets/`)
+loadSound('lowFreqExplosion', 'sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg')
+loadSound('laser', 'sci-fi-sounds/Audio/laserSmall_000.ogg')
+loadSprite('bg', '/kenney_pixelplatformer/Background/Background_purple.png')
+loadSprite('ground', '/kenney_pixelplatformer/Tiles/tile_0000.png')
+loadSprite('box', '/kenney_pixelplatformer/Tiles/tile_0026.png')
+loadSprite('bomb', '/kenney_pixelplatformer/Characters/character_0008.png')
+loadSprite('enemy', '/kenney_pixelplatformer/Tilemap/characters_packed.png', {
   sliceX: 9,
   sliceY: 3.1,
   anims: {
@@ -30,8 +31,7 @@ loadSprite('enemy', 'Tilemap/characters_packed.png', {
     }
   }
 })
-loadSprite('bomb', 'Characters/character_0008.png',)
-loadSprite('player', 'Tilemap/characters_packed.png', {
+loadSprite('player', '/kenney_pixelplatformer/Tilemap/characters_packed.png', {
   sliceX: 9,
   sliceY: 3.1,
   anims: {
