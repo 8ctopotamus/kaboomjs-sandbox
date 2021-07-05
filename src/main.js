@@ -152,22 +152,20 @@ scene('main', () => {
   const playerAction = () => {
     if (player.pos.y < HEIGHT - 120 ) {
       camPos(player.pos) 
-    } 
+    }
   }
 
   const addLaser = () => {
     const diffX = (mousePos().x - player.pos.x)
     const diffY = (mousePos().y - player.pos.y)
-
-    console.log(diffX)
-
     const above = player.pos.y <= mousePos().y
     const right = player.pos.x <= mousePos().x 
-    const offsetX = diffX > 50 ? (right ? 20 : -20) : 0
-    const offsetY = above ? 20 : -20
+    const shootingStraight = Math.abs(diffY) < 10
+    const offsetX = right ? 20 : -20
+    const offsetY = !shootingStraight ? above ? 20 : -20 : 0
     const tangent = diffY / diffX
     const l = add([
-      rect(5, 2),
+      rect(10, 3),
       origin('center'),
       rotate(-tangent),
       pos((player.pos.x + offsetX), (player.pos.y + offsetY)),
