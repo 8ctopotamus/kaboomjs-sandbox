@@ -174,7 +174,7 @@ scene('main', () => {
     ])
     const trajectory = vec2(diffX * 2, diffY * 2)
     l.action(() => l.move(trajectory))
-    wait(2, () => destroy(l))
+    wait(1, () => destroy(l))
   }
 
   const shoot = () => {
