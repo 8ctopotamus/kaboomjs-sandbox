@@ -8,6 +8,7 @@ const baseURL = `${window.location.origin}${window.location.pathname}`
 
 loadRoot(`${baseURL}assets/`)
 loadSound('lowFreqExplosion', 'sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg')
+loadSound('thrusterFire', 'sci-fi-sounds/Audio/thrusterFire_000.ogg')
 loadSound('laser', 'sci-fi-sounds/Audio/laserSmall_000.ogg')
 loadSprite('bg', '/kenney_pixelplatformer/Background/background_purple.png')
 loadSprite('ground', '/kenney_pixelplatformer/Tiles/tile_0000.png')
@@ -71,28 +72,44 @@ scene('main', () => {
   
   camIgnore(['bg'])
 
-  addLevel([...`
-  u
-
-
-
-
-  u                  u
-  
-  o       o        o     u               
-                                
-
-    bbbbbbbb       x       
-    
-     
-          bb             bbbb
-  ===========  == ====bbbbb==
-  `.trim()
-   .split('\n')
-   .map(s => s.trim())
+  const map = addLevel([
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                  u   ',
+    '     u                ',
+    '                      ',
+    '  bb                  ',
+    '      bb              ',
+    '        bb            ',
+    '                      ',
+    '              u       ',
+    '                      ',
+    '             =======  ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '                      ',
+    '  =======             ',
+    '                      ',
+    '                     ',
+    '                      ',
+    '                      ',
+    '====      ====     ===',
   ], {
-    width: 18,
-    height: 19,
+    width: 22,
+    height: 22,
     pos: vec2(0, 0),
     '=': [
       sprite('ground'),
@@ -125,7 +142,8 @@ scene('main', () => {
       scale(0.19),
       'ufo',
       'enemy',
-      'killable'
+      'killable',
+      'patrol', 
     ]
   })
 
@@ -157,27 +175,47 @@ scene('main', () => {
   
   const jump = () => {
     player.play('jump')
-    if (player.grounded() || jumpCount < 2) {
-      player.jump(JUMP_FORCE) 
+    if (jumpCount < 2) {
+      let jf = JUMP_FORCE
+      if (jumpCount === 1) {
+        const sfx = play('thrusterFire')
+        jf += 200
+        const thrust = add([
+          rect(10, 10),
+          pos(player.pos.x, player.pos.y + 10),
+          origin('top'),
+          layer('bg'),
+          color(1,1,0),
+        ])
+        thrust.action(() => thrust.pos = vec2(player.pos.x, player.pos.y + 10))
+        wait(1, () => {
+          sfx.stop()
+          destroy(thrust)
+        })
+      }
+      player.jump(jf) 
       jumpCount++
     }
   }
   
-  const playerIdle = () => {
-    rot = 0
-    jumpCount = 0
+  const playerIdle = grounded => {
     player.play('idle')
+    if (grounded) {
+      jumpCount = 0
+    }
   }
 
   const playerAction = () => {
     camPos(player.pos) 
     // player has fallen
-    if (player.pos.y < HEIGHT - 200 ) {}
+    // if (player.pos.y > HEIGHT - 300 ) {
+    //   console.log('you lose')
+    // }
   }
 
   const addLaser = () => {
-    const diffX = (mousePos().x - player.pos.x)
-    const diffY = (mousePos().y - player.pos.y)
+    const diffX = mousePos().x - player.pos.x
+    const diffY = mousePos().y - player.pos.y
     const above = player.pos.y <= mousePos().y
     const right = player.pos.x <= mousePos().x 
     const moveX = right ? MOVE_SPEED : -MOVE_SPEED
@@ -185,6 +223,7 @@ scene('main', () => {
     const offsetX = right ? 20 : -20
     const offsetY = !shootingStraight ? above ? 20 : -20 : 0
     const tangent = diffY / diffX
+    play('laser')
     const l = add([
       rect(10, 3),
       origin('center'),
@@ -198,8 +237,7 @@ scene('main', () => {
     wait(1, () => destroy(l))
   }
 
-  const shoot = () => {
-    play('laser')
+  const playerShoot = () => {
     addLaser()
   }
 
@@ -214,7 +252,7 @@ scene('main', () => {
   const restart = () => go('main')
 
   player.action(playerAction)
-  player.on('grounded', playerIdle)
+  player.on('grounded', () => playerIdle(true))
 
   // input
   keyDown('left', () => movePlayer('left'))
@@ -227,7 +265,7 @@ scene('main', () => {
   keyRelease('left', () => playerIdle())
   keyRelease('right', () => playerIdle())
   keyPress('space', jump)
-  mouseClick(shoot)
+  mouseClick(playerShoot)
 
   // collisions
   collides('player', 'box', handleBoxTouched)
@@ -251,6 +289,10 @@ scene('main', () => {
     w.move(x / 3, 0)
   })
 
+  action('ufo', ufo => {
+    const dir = ufo.dir === 'right' ? MOVE_SPEED : -MOVE_SPEED
+    ufo.move(vec2(dir/4, 0))
+  })
 
   const ufoShoot = u => {
     const b = add([
@@ -258,18 +300,19 @@ scene('main', () => {
       pos(u.pos.x, u.pos.y),
       color(.6, .6, 0)
     ])
-    u.action(() => b.move(vec2(player.pos.x - u.pos.x, player.pos.y - u.pos.y)))
+    play('laser', { detune: -1200 })
+    const x = player.pos.x - u.pos.x
+    const y = player.pos.y - u.pos.y
+    u.action(() => b.move(vec2(x, y)))
     wait(.25, () => b.use('laser'))
     wait(2, () => destroy(b))
     return b
   }
-
   
-  
-  loop(6, () => {
+  loop(3, () => {
     every('ufo', u => {
-      const laser = ufoShoot(u)
-      
+      // ufoShoot(u)
+      u.dir = u.dir === 'right' ? 'left' : 'right'
     })
   })
 })
