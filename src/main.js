@@ -57,12 +57,12 @@ const JUMP_FORCE = 420
 const MOVE_SPEED = 140
 const CAM_ROT_SPEED = 0.002
 
-let rot = 0
+let shots = 5
 let jumpCount = 0
 
-layers(['bg', 'main'], 'main')
-
 scene('main', () => {
+  layers(['bg', 'main', 'ui'], 'main')
+
   add([
     sprite('bg'),
     layer('bg'),
@@ -72,7 +72,7 @@ scene('main', () => {
   
   camIgnore(['bg'])
 
-  const map = addLevel([
+  addLevel([
     '                      ',
     '                      ',
     '                      ',
@@ -180,18 +180,24 @@ scene('main', () => {
       if (jumpCount === 1) {
         const sfx = play('thrusterFire')
         jf += 200
+        let opacity = 1
         const thrust = add([
-          rect(10, 10),
-          pos(player.pos.x, player.pos.y + 10),
+          rect(8, 15),
+          pos(player.pos.x, player.pos.y - (player.height / 2.5)),
           origin('top'),
-          layer('bg'),
-          color(1,1,0),
+          color(rgba(1, 1, 0, opacity)),
         ])
-        thrust.action(() => thrust.pos = vec2(player.pos.x, player.pos.y + 10))
-        wait(1, () => {
+        thrust.action(() => {
+          thrust.pos = vec2(player.pos.x, player.pos.y + 10)
+          opacity -= 0.04
+          thrust.color = rgba(1, 1, 0, opacity)
+        })
+        wait(0.25, () => {
           sfx.stop()
           destroy(thrust)
         })
+      } else {
+        play('laser')
       }
       player.jump(jf) 
       jumpCount++
@@ -235,6 +241,7 @@ scene('main', () => {
     const trajectory = vec2(moveX * 2, diffY * 2)
     l.action(() => l.move(trajectory))
     wait(1, () => destroy(l))
+    console.log(l)
   }
 
   const playerShoot = () => {
@@ -259,12 +266,12 @@ scene('main', () => {
   keyDown('right', () => movePlayer('right'))
   keyDown('a', () => movePlayer('left'))
   keyDown('d', () => movePlayer('right'))
+  keyPress('up', jump)
   keyPress('w', jump)
   keyRelease('a', () => playerIdle())
   keyRelease('d', () => playerIdle())
   keyRelease('left', () => playerIdle())
   keyRelease('right', () => playerIdle())
-  keyPress('space', jump)
   mouseClick(playerShoot)
 
   // collisions
