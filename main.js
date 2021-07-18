@@ -2,9 +2,29 @@ kaboom({
   global: true,
   fullscreen: true,
   scale: 2,
+  connect: 'ws://localhost:8081',
 })
 
 const baseURL = `${window.location.origin}${window.location.pathname}`
+
+function health(hp) {
+  // these functions will directly assign to the game object
+  return {
+      hurt(n) {
+          hp -= n;
+          if (hp <= 0) {
+              // trigger a custom event
+              this.trigger("death");
+          }
+      },
+      heal(n) {
+          hp += n;
+      },
+      hp() {
+          return hp;
+      },
+  };
+}
 
 loadRoot(`${baseURL}assets/`)
 loadSound('lowFreqExplosion', 'sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg')
@@ -57,10 +77,15 @@ const JUMP_FORCE = 420
 const MOVE_SPEED = 140
 const CAM_ROT_SPEED = 0.002
 
+const players = {}
+
 let shots = 5
 let jumpCount = 0
 
+
+
 scene('main', () => {
+  
   layers(['bg', 'main', 'ui'], 'main')
 
   add([
@@ -82,14 +107,14 @@ scene('main', () => {
     '                      ',
     '                      ',
     '                      ',
+    '     =====            ',
     '                      ',
     '                      ',
-    '                      ',
-    '                      ',
+    '              bbbb    ',
     '                  u   ',
     '     u                ',
     '                      ',
-    '  bb                  ',
+    '                      ',
     '      bb              ',
     '        bb            ',
     '                      ',
@@ -147,23 +172,48 @@ scene('main', () => {
     ]
   })
 
-  const player = add([
+  const playerDef = [
     sprite('player', { animSpeed: 0.2 }),
     origin('center'),
-    pos(100, -10),
     scale(-1, 1),
     body(),
     'player',
     'killable',
+    health(12),
     {
       dir: 'right',
     }
+  ]
+
+  const player = add([
+    ...playerDef, 
+    pos(Math.floor(Math.random() * (500 - 100) + 100, -10))
   ])
+
+  send('ADD_PLAYER', { pos: player.pos })
+
+  recv('ADD_PLAYER', data => {
+    players[data.id] = add([
+      ...playerDef,
+      pos(data.pos),
+    ])
+  })
+
+  recv('UPDATE_PLAYER', (id, data) => {
+    if (players[id]) {
+      console.log(moving)
+      players[id].pos = vec2(data.pos)
+    }
+  })
+
+  const sendUpdate = () => send('UPDATE_PLAYER', {
+    pos: player.pos
+  })
   
   const movePlayer = dir => { 
     player.dir = dir
     if (player.grounded() && player.curAnim() !== 'run')
-    player.play('run')
+      player.play('run')
     if (dir === 'left') {
       player.flipX(1)
       player.move(-MOVE_SPEED, 0)
@@ -171,6 +221,7 @@ scene('main', () => {
       player.flipX(-1)
       player.move(MOVE_SPEED, 0)
     }
+    sendUpdate()
   }
   
   const jump = () => {
@@ -197,7 +248,7 @@ scene('main', () => {
           destroy(thrust)
         })
       } else {
-        play('laser')
+        play('laser', { detune: 1200 })
       }
       player.jump(jf) 
       jumpCount++
@@ -241,19 +292,22 @@ scene('main', () => {
     const trajectory = vec2(moveX * 2, diffY * 2)
     l.action(() => l.move(trajectory))
     wait(1, () => destroy(l))
-    console.log(l)
   }
 
   const playerShoot = () => {
     addLaser()
   }
 
-  const handleBoxTouched = (p, b) => b.use(body())
+  const handleBoxTouched = (p, b) => wait(.25, () => b.use(body()))
 
   const handlePlayerEnemyCollide = (p, e) => {
     play('lowFreqExplosion')
     camShake(12)
-    restart()
+    // restart()
+    const tempCol = player.color
+    player.color = rgba(1, 0, 0, 1)
+    player.hurt(1)
+    wait(.5, () => player.color = tempCol)
   }
 
   const restart = () => go('main')

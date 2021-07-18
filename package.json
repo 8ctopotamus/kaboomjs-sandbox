@@ -4,12 +4,13 @@
   "description": "https://kenney.nl/assets/pixel-platformer",
   "main": "index.js",
   "scripts": {
-    "dev": "npx live-server",
+    "dev": "npx live-server && npx nodemon server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "live-server": "^1.2.1"
+  "dependencies": {
+    "express": "^4.17.1",
+    "ws": "^7.5.2"
   }
 }
